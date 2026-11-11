@@ -1,0 +1,29 @@
+{
+  "processes": {
+    "example_process_label": {
+      "display_name": "Example Process (Label Mode)",
+      "folder": "Inbox",
+      "match_text": "replace with text unique to this process's email body",
+      "subject_contains": null,
+      "sender_contains": null,
+      "fields": [
+        { "name": "Total", "label": "Total", "occurrence": "first" },
+        { "name": "Business Exceptions", "label": "Business Exception", "occurrence": "first" },
+        { "name": "System Exceptions", "label": "System Exception", "occurrence": "first" }
+      ]
+    },
+    "example_process_table": {
+      "display_name": "Example Process (Table Mode)",
+      "folder": "Inbox",
+      "match_text": "replace with text unique to this process's email body",
+      "subject_contains": null,
+      "sender_contains": null,
+      "fields": [
+        { "name": "Total", "mode": "table_column", "column_header": "Total", "aggregate": "total_row", "total_row_keyword": "total" },
+        { "name": "Success", "mode": "table_column", "column_header": "Success", "aggregate": "total_row", "total_row_keyword": "total" },
+        { "name": "Business Exceptions", "mode": "table_column", "column_header": "Bus Exception", "aggregate": "total_row", "total_row_keyword": "total" },
+        { "name": "System Exceptions", "mode": "table_column", "column_header": "System Exception", "aggregate": "total_row", "total_row_keyword": "total" }
+      ]
+    }
+  }
+}
