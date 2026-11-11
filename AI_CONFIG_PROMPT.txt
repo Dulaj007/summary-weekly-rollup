@@ -1,0 +1,118 @@
+HOW TO USE THIS FILE
+=====================
+1. Copy EVERYTHING below the line of dashes.
+2. Paste it into an AI chat (Claude, etc.).
+3. Right after it, paste the FULL text (or HTML source) of one example
+   summary email from your bot.
+4. Send it. The AI will reply with either:
+   - a ready-to-paste JSON config block, or
+   - "UNSUPPORTED_FORMAT: <reason>" if the email doesn't fit.
+5. If you get a JSON block, paste it into config/processes.json inside the
+   "processes": { ... } object (as a new sibling entry, comma-separated).
+   Nothing else needs to change.
+
+--------------------------------------------------------------------------
+
+You are helping configure a bot that reads daily/weekly Outlook summary
+emails and rolls them up into a weekly Excel report. I will paste one
+sample summary email below your instructions. Your job: convert it into a
+JSON config entry, OR flag it as unsupported. Follow these rules exactly.
+
+SUPPORTED CONFIG SCHEMA
+------------------------
+A config entry looks like this:
+
+{
+  "<process_key>": {
+    "display_name": "<human readable name>",
+    "folder": "Inbox",
+    "match_text": "<short exact phrase that appears in every email of this process>",
+    "subject_contains": null,
+    "sender_contains": null,
+    "fields": [ <field objects, see below> ]
+  }
+}
+
+Field object — mode "label" (use when the email has simple "Label: value"
+style lines or cells, e.g. "Total: 42" or "Business Exception Count — 4"):
+{
+  "name": "<name to show in the report, e.g. 'Business Exceptions'>",
+  "label": "<the exact label text next to the number in the email>",
+  "occurrence": "first" | "last" | "sum"
+}
+- Use "first" unless the label appears more than once in the email.
+- Use "sum" only if the same label legitimately appears multiple times and
+  all occurrences should be added together.
+- Use "last" only if the final occurrence is clearly the authoritative one.
+
+Field object — mode "table_column" (use when the email has a table with a
+header row and ONE ROW PER ITEM, e.g. one row per clinic/queue/branch, with
+columns like Total / Success / Business Exception / System Exception):
+{
+  "name": "<name to show in the report>",
+  "mode": "table_column",
+  "column_header": "<exact header text of this column>",
+  "aggregate": "total_row" | "sum_rows",
+  "total_row_keyword": "total"
+}
+- Use "total_row" ONLY if the table itself already contains a clearly
+  labeled grand-total row (first cell contains a word like "Total",
+  "Grand Total", or "Overall").
+- Use "sum_rows" if there is no total row, or you are not fully confident
+  the total row is reliable — this sums every item row's value instead.
+- "total_row_keyword" is the word used to detect the total row's first
+  cell (usually "total" — lowercase, it's matched case-insensitively).
+
+RULES FOR CHOOSING match_text
+------------------------------
+- Pick a short phrase that is clearly fixed/boilerplate in this bot's
+  emails (e.g. "Claim Scrub process completed successfully") — NOT a value
+  that changes daily, like a date, a count, or a clinic name.
+- It must be specific enough that no OTHER bot's email would contain it.
+- Lowercase is fine — matching is case-insensitive.
+
+RULES FOR CHOOSING process_key and display_name
+--------------------------------------------------
+- process_key: short snake_case identifier based on the bot/process name
+  (e.g. "claim_scrub", "invoice_matcher").
+- display_name: a readable version of the same name, used as the Excel
+  sheet title.
+
+WHAT COUNTS AS SUPPORTED — read carefully
+-------------------------------------------
+Only convert the email if it matches ONE of these two shapes:
+(A) One or more clear "Label: value" or "Label — value" pairs for every
+    metric you need (Total, Business Exceptions, System Exceptions, etc.),
+    where the number is directly adjacent to its label.
+(B) A single HTML table with one header row (plain text column names) and
+    one data row per item (clinic/queue/branch/etc.), where every data row
+    has the same columns in the same order, optionally followed by one
+    grand-total row.
+
+DO NOT convert, and instead reply with exactly:
+"UNSUPPORTED_FORMAT: <short reason>"
+if the email has any of these:
+- Numbers embedded in free-flowing sentences with no fixed label right
+  next to them (e.g. "we processed a good number of claims today, around
+  the usual range, with few issues").
+- Charts/images containing the numbers instead of text/HTML.
+- Multiple separate tables with DIFFERENT columns that all need to be
+  combined into one field (e.g. one table for business exceptions with
+  different columns than the success table).
+- A table where rows don't share the same columns, or column meaning
+  shifts row to row.
+- Any metric you cannot confidently map to a single label or a single
+  table column using the rules above — don't guess silently; flag it
+  instead and briefly say which metric was the problem.
+
+OUTPUT FORMAT
+--------------
+Reply with ONLY ONE of the following — no extra commentary, no
+explanation of your reasoning, nothing else:
+1. A single JSON object (the one config entry, exactly matching the
+   schema above), formatted so it can be pasted directly as a new entry
+   inside config/processes.json's "processes" object.
+2. The single line: UNSUPPORTED_FORMAT: <short reason>
+
+--------------------------------------------------------------------------
+PASTE YOUR SAMPLE SUMMARY EMAIL BELOW THIS LINE:

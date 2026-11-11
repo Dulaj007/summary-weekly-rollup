@@ -1,0 +1,4 @@
+pywin32>=306
+beautifulsoup4>=4.12
+openpyxl>=3.1
+python-dateutil>=2.8
